@@ -30,3 +30,11 @@ func FindFunc[T ~[]E, E any](s T, fn func(E) bool) (E, error) {
 
 	return s[idx], nil
 }
+
+// Filter returns a new slice of the elements that match the callback
+func Filter[T ~[]E, E comparable](s T, fn func(E) bool) []E {
+	ss := slices.Clone(s)
+	return slices.DeleteFunc(ss, func(e E) bool {
+		return !fn(e)
+	})
+}
