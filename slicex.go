@@ -2,6 +2,7 @@ package slicex
 
 import (
 	"errors"
+	"iter"
 	"slices"
 )
 
@@ -31,10 +32,23 @@ func FindFunc[T ~[]E, E any](s T, fn func(E) bool) (E, error) {
 	return s[idx], nil
 }
 
-// Filter returns a new slice of the elements that match the callback
-func Filter[T ~[]E, E comparable](s T, fn func(E) bool) []E {
-	ss := slices.Clone(s)
-	return slices.DeleteFunc(ss, func(e E) bool {
-		return !fn(e)
-	})
+// Filter returns a new slice of the elements of slice s that match the callback
+func Filter[T ~[]E, E comparable](s T, match func(E) bool) []E {
+	ss := make([]E, 0, len(s))
+	return slices.AppendSeq(ss, Filtered(s, match))
+}
+
+// Filtered returns an iter.Seq over the values of slice s that evaluate true with the match filter.
+func Filtered[Slice ~[]E, E any](s Slice, match func(E) bool) iter.Seq[E] {
+	return func(yield func(E) bool) {
+		for _, v := range s {
+			if !match(v) {
+				continue
+			}
+
+			if !yield(v) {
+				return
+			}
+		}
+	}
 }

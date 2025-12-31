@@ -286,3 +286,40 @@ func TestFilter(t *testing.T) {
 		}
 	})
 }
+
+func BenchmarkFilter(b *testing.B) {
+	b.Run("small slice some matches", func(b *testing.B) {
+		slice := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = slicex.Filter(slice, func(e int) bool { return e%2 == 0 })
+		}
+	})
+
+	b.Run("large slice some matches", func(b *testing.B) {
+		slice := make([]int, 10000)
+		for i := range slice {
+			slice[i] = i
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = slicex.Filter(slice, func(e int) bool { return e%2 == 0 })
+		}
+	})
+
+	b.Run("small slice no matches", func(b *testing.B) {
+		slice := []int{1, 3, 5, 7, 9}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = slicex.Filter(slice, func(e int) bool { return e%2 == 0 })
+		}
+	})
+
+	b.Run("small slice all matches", func(b *testing.B) {
+		slice := []int{2, 4, 6, 8, 10}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = slicex.Filter(slice, func(e int) bool { return e%2 == 0 })
+		}
+	})
+}
