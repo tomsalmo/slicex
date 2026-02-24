@@ -1,6 +1,7 @@
 package slicex_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -283,6 +284,67 @@ func TestFilter(t *testing.T) {
 			if v != want[i] {
 				t.Errorf("original slice modified at index %d: got %v, want %v", i, v, want[i])
 			}
+		}
+	})
+}
+
+func TestConvert(t *testing.T) {
+	t.Run("int to string", func(t *testing.T) {
+		slice := []int{1, 2, 3}
+		got := slicex.Convert(slice, func(e int) string {
+			return fmt.Sprintf("%d", e)
+		})
+		want := []string{"1", "2", "3"}
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("struct to string", func(t *testing.T) {
+		type person struct {
+			name string
+			age  int
+		}
+		people := []person{
+			{name: "Alice", age: 25},
+			{name: "Bob", age: 30},
+		}
+		got := slicex.Convert(people, func(p person) string { return p.name })
+		want := []string{"Alice", "Bob"}
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("empty slice", func(t *testing.T) {
+		var slice []int
+		got := slicex.Convert(slice, func(e int) string { return fmt.Sprintf("%d", e) })
+
+		if len(got) != 0 {
+			t.Errorf("got length %v, want length 0", len(got))
+		}
+	})
+
+	t.Run("single element", func(t *testing.T) {
+		slice := []int{42}
+		got := slicex.Convert(slice, func(e int) int { return e * 2 })
+		want := []int{84}
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("original slice unchanged", func(t *testing.T) {
+		original := []int{1, 2, 3}
+		want := []int{1, 2, 3}
+
+		_ = slicex.Convert(original, func(e int) int { return e * 10 })
+
+		if diff := cmp.Diff(want, original); diff != "" {
+			t.Errorf("original slice modified (-want +got):\n%s", diff)
 		}
 	})
 }

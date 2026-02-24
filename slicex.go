@@ -52,3 +52,20 @@ func Filtered[Slice ~[]E, E any](s Slice, match func(E) bool) iter.Seq[E] {
 		}
 	}
 }
+
+// Convert returns a new slice of the elements of slice s converted using the convert func
+func Convert[T ~[]E, E, P any](s T, convert func(E) P) []P {
+	ss := make([]P, 0, len(s))
+	return slices.AppendSeq(ss, Converted(s, convert))
+}
+
+// Converted returns an iter.Seq over the values of slice s with the convert func converting them to type P.
+func Converted[Slice ~[]E, E, P any](s Slice, convert func(E) P) iter.Seq[P] {
+	return func(yield func(P) bool) {
+		for _, v := range s {
+			if !yield(convert(v)) {
+				return
+			}
+		}
+	}
+}
